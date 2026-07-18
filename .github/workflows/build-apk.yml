@@ -18,7 +18,18 @@ jobs:
           distribution: 'temurin'
 
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android-keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android-keystore
+          echo "Decoded keystore sha256:"
+          sha256sum android-keystore
+          echo "Expected sha256: 42f92e25d79bf88e903152f07e01ee6fb5d754a6b75e5efd15aa0e87df498718"
+          echo "Password length: ${#KEYSTORE_PASSWORD}"
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+
+      - name: Verify keystore password with keytool
+        run: |
+          keytool -list -keystore android-keystore -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -alias omran-ai-builder || echo "KEYTOOL CHECK FAILED"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
