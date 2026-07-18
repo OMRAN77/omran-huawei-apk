@@ -1,0 +1,102 @@
+{
+  "packageId": "com.omran.aibuilder.twa",
+  "host": "omran-ai-builder.vercel.app",
+  "name": "عمران للذكاء الاصطناعي",
+  "launcherName": "عمران AI",
+  "display": "standalone",
+  "themeColor": {
+    "model": "rgb",
+    "color": [
+      124,
+      92,
+      255
+    ],
+    "valpha": 1
+  },
+  "themeColorDark": {
+    "model": "rgb",
+    "color": [
+      0,
+      0,
+      0
+    ],
+    "valpha": 1
+  },
+  "navigationColor": {
+    "model": "rgb",
+    "color": [
+      0,
+      0,
+      0
+    ],
+    "valpha": 1
+  },
+  "navigationColorDark": {
+    "model": "rgb",
+    "color": [
+      0,
+      0,
+      0
+    ],
+    "valpha": 1
+  },
+  "navigationDividerColor": {
+    "model": "rgb",
+    "color": [
+      0,
+      0,
+      0
+    ],
+    "valpha": 0
+  },
+  "navigationDividerColorDark": {
+    "model": "rgb",
+    "color": [
+      0,
+      0,
+      0
+    ],
+    "valpha": 0
+  },
+  "backgroundColor": {
+    "model": "rgb",
+    "color": [
+      10,
+      11,
+      16
+    ],
+    "valpha": 1
+  },
+  "enableNotifications": true,
+  "startUrl": "/index.html",
+  "iconUrl": "https://omran-ai-builder.vercel.app/icons/icon-512-v2.png",
+  "maskableIconUrl": "https://omran-ai-builder.vercel.app/icons/icon-512-v2.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "unknown",
+  "webManifestUrl": "https://omran-ai-builder.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://omran-ai-builder.vercel.app/",
+  "minSdkVersion": 21,
+  "orientation": "any",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": []
+}
