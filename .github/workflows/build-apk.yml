@@ -42,8 +42,22 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: ./gradlew assembleRelease --stacktrace
 
+      - name: Build release AAB
+        env:
+          KEYSTORE_PATH: ../android-keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: omran-ai-builder
+          KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: ./gradlew bundleRelease --stacktrace
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: omran-ai-builder-apk
           path: app/build/outputs/apk/release/*.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: omran-ai-builder-aab
+          path: app/build/outputs/bundle/release/*.aab
