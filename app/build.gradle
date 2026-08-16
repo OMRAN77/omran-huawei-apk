@@ -21,7 +21,7 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'com.omran.aibuilder.twa',
+    applicationId: 'com.omran.aibuilder',
     hostName: 'omran-ai-builder.vercel.app', // The domain being opened in the TWA.
     launchUrl: '/index.html', // The start path for the TWA. Must be relative to the domain.
     name: 'عمران للذكاء الاصطناعي', // The application name.
@@ -52,9 +52,9 @@ def twaManifest = [
 
 android {
     compileSdkVersion 36
-    namespace "com.omran.aibuilder.twa"
+    namespace "com.omran.aibuilder"
     defaultConfig {
-        applicationId "com.omran.aibuilder.twa"
+        applicationId "com.omran.aibuilder"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode 1
@@ -205,7 +205,8 @@ task generateShorcutsFile {
                 }
             }
         }
-    shortcutsFile.text = xmlWriter.toString() + '\n'
+    shortcutsFile.text = xmlWriter.toString() + '
+'
 }
 
 preBuild.dependsOn(generateShorcutsFile)
