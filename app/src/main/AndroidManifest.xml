@@ -23,6 +23,10 @@
 
     
         <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+        <!-- v-internet: بدونها يعمل التطبيق فقط عبر متصفح خارجي؛ وضع WebView
+             الداخلي (احتياط الأجهزة بلا كروم) ومراسل الانهيار يحتاجانها. -->
+        <uses-permission android:name="android.permission.INTERNET"/>
+        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     
 
     
