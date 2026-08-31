@@ -36,7 +36,7 @@
     
 
     <application
-        android:name="Application"
+        android:name="com.omran.aibuilder.twa.Application"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/appName"
@@ -79,7 +79,7 @@
             </activity>
         
 
-        <activity android:name="LauncherActivity"
+        <activity android:name="com.omran.aibuilder.twa.LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:label="@string/launcherName"
             android:exported="true">
@@ -150,7 +150,7 @@
         </activity>
 
         <!-- v-native-webview: شاشة WebView أصلية — بلا أي منطق TWA عند الإقلاع -->
-        <activity android:name="OmranWebActivity"
+        <activity android:name="com.omran.aibuilder.twa.OmranWebActivity"
             android:alwaysRetainTaskState="true"
             android:label="@string/launcherName"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
@@ -186,7 +186,7 @@
         </provider>
 
         <service
-            android:name=".DelegationService"
+            android:name="com.omran.aibuilder.twa.DelegationService"
             android:enabled="@bool/enableNotification"
             android:exported="@bool/enableNotification">
 
