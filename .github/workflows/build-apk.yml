@@ -71,8 +71,8 @@ jobs:
       - name: Publish GitHub Release with binaries
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.2.1-b4
-          name: "v1.2.1 (versionCode 4, targetSdk 36)"
+          tag_name: v1.2.2-b5
+          name: "v1.2.2 (versionCode 5, webview fallback)"
           body: "بناء موقّع جاهز للرفع في Play Console — app-release.aab للمتجر، app-release.apk للتثبيت اليدوي."
           files: |
             app/build/outputs/apk/release/*.apk

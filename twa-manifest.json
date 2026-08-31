@@ -81,7 +81,7 @@
   "shortcuts": [],
   "generatorApp": "unknown",
   "webManifestUrl": "https://omran-ai-builder.vercel.app/manifest.json",
-  "fallbackType": "customtabs",
+  "fallbackType": "webview",
   "features": {},
   "alphaDependencies": {
     "enabled": false
