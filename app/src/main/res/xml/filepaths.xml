@@ -15,4 +15,6 @@
 -->
 <paths>
     <files-path path="twa_splash/" name="twa_splash" />
+    <!-- v-attach-camera: لقطات كاميرا الإرفاق تُكتب هنا مؤقتًا -->
+    <cache-path path="camera/" name="camera" />
 </paths>

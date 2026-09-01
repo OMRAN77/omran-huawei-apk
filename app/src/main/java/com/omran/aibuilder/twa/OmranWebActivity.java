@@ -26,10 +26,59 @@ public class OmranWebActivity extends Activity {
     private static final int FILE_PICK = 71;
 
     private static final int PERM_REQ = 72;
+    // v-attach-camera: إذن الكاميرا قبل فتح منتقي الإرفاق (حتى يظهر خيار الكاميرا)
+    private static final int PERM_CAM_PICK = 73;
 
     private WebView web;
     private ValueCallback<Uri[]> pendingFilePick;
     private PermissionRequest pendingWebPermission;
+    private WebChromeClient.FileChooserParams pendingChooserParams;
+    private Uri cameraOutputUri;
+
+    // v-attach-camera: منتقي createIntent() وحده منتقي مستندات بلا كاميرا —
+    // في TWA القديم كان كروم يضيف الكاميرا تلقائيًا، وفي WebView علينا نحن:
+    // نضيف نية ACTION_IMAGE_CAPTURE تكتب لملف مؤقت عبر الـFileProvider القائم.
+    private void launchFileChooser(WebChromeClient.FileChooserParams p) {
+        Intent content;
+        try { content = p.createIntent(); }
+        catch (Throwable e) {
+            content = new Intent(Intent.ACTION_GET_CONTENT);
+            content.addCategory(Intent.CATEGORY_OPENABLE);
+            content.setType("*/*");
+        }
+        Intent camera = null;
+        cameraOutputUri = null;
+        // المانيفست يعلن CAMERA، وأندرويد يمنع ACTION_IMAGE_CAPTURE حينها
+        // ما لم تكن الصلاحية ممنوحة فعلًا — بدونها نُظهر المنتقي العادي فقط.
+        if (hasPerm(android.Manifest.permission.CAMERA)) {
+            try {
+                java.io.File dir = new java.io.File(getCacheDir(), "camera");
+                dir.mkdirs();
+                java.io.File photo = new java.io.File(dir, "cap_" + System.currentTimeMillis() + ".jpg");
+                photo.createNewFile();
+                cameraOutputUri = androidx.core.content.FileProvider.getUriForFile(
+                    this, getPackageName() + ".fileprovider", photo);
+                camera = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                camera.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, cameraOutputUri);
+                camera.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                camera.setClipData(android.content.ClipData.newRawUri("camera", cameraOutputUri));
+            } catch (Throwable e) { camera = null; cameraOutputUri = null; }
+        }
+        try {
+            Intent toStart;
+            if (camera != null && p.isCaptureEnabled()) {
+                // <input capture> يريد الكاميرا مباشرة بلا منتقي
+                toStart = camera;
+            } else {
+                toStart = Intent.createChooser(content, null);
+                if (camera != null) toStart.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { camera });
+            }
+            startActivityForResult(toStart, FILE_PICK);
+        } catch (Throwable e) {
+            if (pendingFilePick != null) { pendingFilePick.onReceiveValue(null); pendingFilePick = null; }
+            cameraOutputUri = null;
+        }
+    }
 
     private static String[] neededAndroidPerms(PermissionRequest request) {
         java.util.ArrayList<String> out = new java.util.ArrayList<>();
@@ -66,6 +115,13 @@ public class OmranWebActivity extends Activity {
 
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        if (code == PERM_CAM_PICK) {
+            // مُنح أو رُفض — نفتح المنتقي على أي حال (الكاميرا تظهر فقط مع الإذن)
+            WebChromeClient.FileChooserParams p = pendingChooserParams;
+            pendingChooserParams = null;
+            if (p != null && pendingFilePick != null) launchFileChooser(p);
+            return;
+        }
         if (code != PERM_REQ) { super.onRequestPermissionsResult(code, perms, results); return; }
         PermissionRequest req = pendingWebPermission;
         pendingWebPermission = null;
@@ -139,13 +195,18 @@ public class OmranWebActivity extends Activity {
             public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
                 if (pendingFilePick != null) { pendingFilePick.onReceiveValue(null); }
                 pendingFilePick = cb;
-                try {
-                    startActivityForResult(p.createIntent(), FILE_PICK);
-                } catch (Throwable e) {
-                    pendingFilePick = null;
-                    return false;
+                // v-attach-camera: أول مرة نطلب إذن الكاميرا حتى يظهر خيارها
+                // في المنتقي؛ الرفض لا يمنع المنتقي العادي.
+                if (android.os.Build.VERSION.SDK_INT >= 23
+                        && !hasPerm(android.Manifest.permission.CAMERA)) {
+                    pendingChooserParams = p;
+                    try {
+                        requestPermissions(new String[] { android.Manifest.permission.CAMERA }, PERM_CAM_PICK);
+                        return true;
+                    } catch (Throwable e) { pendingChooserParams = null; }
                 }
-                return true;
+                launchFileChooser(p);
+                return pendingFilePick != null;
             }
         });
 
@@ -158,8 +219,15 @@ public class OmranWebActivity extends Activity {
     @Override
     protected void onActivityResult(int code, int result, Intent data) {
         if (code == FILE_PICK && pendingFilePick != null) {
-            pendingFilePick.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result, data));
+            Uri[] out = WebChromeClient.FileChooserParams.parseResult(result, data);
+            // v-attach-camera: الكاميرا ترجع RESULT_OK بلا data — الصورة في
+            // الملف المؤقت الذي مررناه في EXTRA_OUTPUT.
+            if (out == null && result == Activity.RESULT_OK && cameraOutputUri != null) {
+                out = new Uri[] { cameraOutputUri };
+            }
+            pendingFilePick.onReceiveValue(out);
             pendingFilePick = null;
+            cameraOutputUri = null;
             return;
         }
         super.onActivityResult(code, result, data);
