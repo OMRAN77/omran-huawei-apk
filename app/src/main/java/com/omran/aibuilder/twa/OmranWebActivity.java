@@ -92,6 +92,12 @@ public class OmranWebActivity extends Activity {
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
         s.setSupportZoom(false);
+        // v-ua-tag: نلحق رقم إصدار التطبيق بالـ user-agent حتى تُظهر تقارير
+        // الأخطاء من الموقع أي نسخة أندرويد مثبّتة بالضبط
+        try {
+            int vc = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            s.setUserAgentString(s.getUserAgentString() + " OmranApp/" + vc);
+        } catch (Throwable ignored) { }
         CookieManager.getInstance().setAcceptCookie(true);
 
         web.setWebViewClient(new WebViewClient() {
@@ -99,6 +105,16 @@ public class OmranWebActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri u = request.getUrl();
                 String scheme = u.getScheme() == null ? "" : u.getScheme();
+                // v-app-settings: الموقع يطلب فتح إعدادات التطبيق (لمنح إذن
+                // الكاميرا يدويًا بعد رفضه) عبر omran-app://settings
+                if (scheme.equals("omran-app")) {
+                    try {
+                        startActivity(new Intent(
+                            android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.parse("package:" + getPackageName())));
+                    } catch (Throwable ignored) { }
+                    return true;
+                }
                 if (!scheme.equals("http") && !scheme.equals("https")) {
                     try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Throwable ignored) { }
                     return true;
