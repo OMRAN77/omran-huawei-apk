@@ -57,8 +57,8 @@ android {
         applicationId "com.omran.aibuilder"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode 14
-        versionName "1.3.7"
+        versionCode 15
+        versionName "1.3.8"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -149,6 +149,24 @@ android {
         resValue "string", "orientation", twaManifest.orientation
 
         
+    }
+
+    // v-flavors: نفس الكود لنسختي المتجرين —
+    // play: الحزمة الحالية com.omran.aibuilder (سجل Google Play)
+    // gallery: الحزمة القديمة com.omran.aibuilder.twa (سجل AppGallery
+    //          رقم 118703501 مسجل عليها) + وضع هواوي دائمًا
+    flavorDimensions "store"
+    productFlavors {
+        play {
+            dimension "store"
+            resValue "string", "omranStore", "play"
+        }
+        gallery {
+            dimension "store"
+            applicationId "com.omran.aibuilder.twa"
+            resValue "string", "providerAuthority", 'com.omran.aibuilder.twa.fileprovider'
+            resValue "string", "omranStore", "huawei"
+        }
     }
     signingConfigs {
         release {

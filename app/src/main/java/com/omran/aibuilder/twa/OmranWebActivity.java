@@ -28,10 +28,16 @@ public class OmranWebActivity extends Activity {
     // وكل ما عداه (Play أو تثبيت يدوي) → وضع Play كما كان.
     private String homeUrl() {
         String store = "play";
-        try {
-            String inst = getPackageManager().getInstallerPackageName(getPackageName());
-            if ("com.huawei.appmarket".equals(inst)) store = "huawei";
-        } catch (Throwable ignored) { }
+        // v-flavors: نكهة gallery تفرض وضع هواوي دائمًا؛ نكهة play تكتشف
+        // التثبيت من AppGallery وقت التشغيل (احتياط).
+        try { store = getString(com.omran.aibuilder.R.string.omranStore); }
+        catch (Throwable ignored) { }
+        if (!"huawei".equals(store)) {
+            try {
+                String inst = getPackageManager().getInstallerPackageName(getPackageName());
+                if ("com.huawei.appmarket".equals(inst)) store = "huawei";
+            } catch (Throwable ignored) { }
+        }
         return "https://" + HOME_HOST + "/?store=" + store;
     }
     private static final int FILE_PICK = 71;

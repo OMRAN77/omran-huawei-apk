@@ -57,13 +57,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: omran-ai-builder-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/*/release/*.apk
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: omran-ai-builder-aab
-          path: app/build/outputs/bundle/release/*.aab
+          path: app/build/outputs/bundle/*/*.aab
 
       # v-release: نشر الملفين في صفحة Releases بروابط مباشرة —
       # تنزيل الـArtifacts يتطلب تسجيل دخول وفك ضغط، والمالك يحتاج
@@ -71,9 +71,9 @@ jobs:
       - name: Publish GitHub Release with binaries
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.3.7-b14
-          name: "v1.3.7 (versionCode 14, runtime store detection: AppGallery vs Play)"
+          tag_name: v1.3.8-b15
+          name: "v1.3.8 (versionCode 15, play + gallery flavors: two store packages from one code)"
           body: "بناء موقّع جاهز للرفع في Play Console — app-release.aab للمتجر، app-release.apk للتثبيت اليدوي."
           files: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/bundle/release/*.aab
+            app/build/outputs/apk/*/release/*.apk
+            app/build/outputs/bundle/*/*.aab
