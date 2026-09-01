@@ -17,4 +17,6 @@
     <files-path path="twa_splash/" name="twa_splash" />
     <!-- v-attach-camera: لقطات كاميرا الإرفاق تُكتب هنا مؤقتًا -->
     <cache-path path="camera/" name="camera" />
+    <!-- v-android-share: ملفات المشاركة (PDF وغيرها) من جسر OmranAndroidShare -->
+    <cache-path path="share/" name="share" />
 </paths>

@@ -133,6 +133,38 @@ public class OmranWebActivity extends Activity {
         } catch (Throwable ignored) { }
     }
 
+    // v-android-share («مافيه مشاركة»): WebView بلا navigator.share ولا تنزيل
+    // <a download> — الموقع يرسل الملف base64 لهذا الجسر فتفتح ورقة مشاركة
+    // النظام الحقيقية (واتساب/حفظ في الملفات...).
+    private class ShareBridge {
+        @android.webkit.JavascriptInterface
+        public void share(final String b64, final String name, final String mime) {
+            new Thread(() -> {
+                try {
+                    byte[] bytes = android.util.Base64.decode(b64, android.util.Base64.DEFAULT);
+                    java.io.File dir = new java.io.File(getCacheDir(), "share");
+                    dir.mkdirs();
+                    String safe = (name == null || name.trim().isEmpty())
+                        ? "omran-file"
+                        : name.replaceAll("[/\\\\:*?\"<>|]", "_");
+                    java.io.File f = new java.io.File(dir, safe);
+                    java.io.FileOutputStream out = new java.io.FileOutputStream(f);
+                    out.write(bytes);
+                    out.close();
+                    Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                        OmranWebActivity.this, getPackageName() + ".fileprovider", f);
+                    Intent send = new Intent(Intent.ACTION_SEND);
+                    send.setType(mime == null || mime.isEmpty() ? "application/octet-stream" : mime);
+                    send.putExtra(Intent.EXTRA_STREAM, uri);
+                    send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    Intent chooser = Intent.createChooser(send, null);
+                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(chooser);
+                } catch (Throwable ignored) { }
+            }).start();
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -208,6 +240,25 @@ public class OmranWebActivity extends Activity {
                 launchFileChooser(p);
                 return pendingFilePick != null;
             }
+        });
+
+        web.addJavascriptInterface(new ShareBridge(), "OmranAndroidShare");
+
+        // v-dl-listener: أي تنزيل http(s) يقع داخل الـWebView (روابط PDF
+        // وغيرها) ينزل عبر مدير التنزيلات مع إشعار في مجلد Download.
+        web.setDownloadListener((dlUrl, ua, contentDisposition, mimetype, contentLength) -> {
+            try {
+                if (dlUrl != null && (dlUrl.startsWith("http://") || dlUrl.startsWith("https://"))) {
+                    android.app.DownloadManager.Request r =
+                        new android.app.DownloadManager.Request(Uri.parse(dlUrl));
+                    r.setNotificationVisibility(
+                        android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    r.setDestinationInExternalPublicDir(
+                        android.os.Environment.DIRECTORY_DOWNLOADS,
+                        android.webkit.URLUtil.guessFileName(dlUrl, contentDisposition, mimetype));
+                    ((android.app.DownloadManager) getSystemService(DOWNLOAD_SERVICE)).enqueue(r);
+                }
+            } catch (Throwable ignored) { }
         });
 
         String url = HOME_URL;
