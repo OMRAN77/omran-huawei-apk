@@ -21,8 +21,19 @@ import android.webkit.WebViewClient;
 
 public class OmranWebActivity extends Activity {
 
-    private static final String HOME_URL = "https://omran-ai-builder.vercel.app/?store=play";
     private static final String HOME_HOST = "omran-ai-builder.vercel.app";
+
+    // v-store-detect: ملف واحد للمتجرين — نكتشف مصدر التثبيت وقت التشغيل:
+    // AppGallery → وضع هواوي (يفعّل إخفاء المحتوى المالي المطلوب لسياساتهم)،
+    // وكل ما عداه (Play أو تثبيت يدوي) → وضع Play كما كان.
+    private String homeUrl() {
+        String store = "play";
+        try {
+            String inst = getPackageManager().getInstallerPackageName(getPackageName());
+            if ("com.huawei.appmarket".equals(inst)) store = "huawei";
+        } catch (Throwable ignored) { }
+        return "https://" + HOME_HOST + "/?store=" + store;
+    }
     private static final int FILE_PICK = 71;
 
     private static final int PERM_REQ = 72;
@@ -273,7 +284,7 @@ public class OmranWebActivity extends Activity {
             } catch (Throwable ignored) { }
         });
 
-        String url = HOME_URL;
+        String url = homeUrl();
         Uri data = getIntent() != null ? getIntent().getData() : null;
         if (data != null && HOME_HOST.equals(data.getHost())) url = data.toString();
         web.loadUrl(url);
