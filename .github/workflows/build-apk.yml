@@ -71,8 +71,8 @@ jobs:
       - name: Publish GitHub Release with binaries
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.3.1-b8
-          name: "v1.3.1 (versionCode 8, fixed component class paths)"
+          tag_name: v1.3.2-b9
+          name: "v1.3.2 (versionCode 9, camera + mic permissions)"
           body: "بناء موقّع جاهز للرفع في Play Console — app-release.aab للمتجر، app-release.apk للتثبيت اليدوي."
           files: |
             app/build/outputs/apk/release/*.apk

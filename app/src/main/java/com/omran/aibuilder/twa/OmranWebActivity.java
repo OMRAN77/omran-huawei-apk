@@ -25,8 +25,57 @@ public class OmranWebActivity extends Activity {
     private static final String HOME_HOST = "omran-ai-builder.vercel.app";
     private static final int FILE_PICK = 71;
 
+    private static final int PERM_REQ = 72;
+
     private WebView web;
     private ValueCallback<Uri[]> pendingFilePick;
+    private PermissionRequest pendingWebPermission;
+
+    private static String[] neededAndroidPerms(PermissionRequest request) {
+        java.util.ArrayList<String> out = new java.util.ArrayList<>();
+        for (String r : request.getResources()) {
+            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) out.add(android.Manifest.permission.CAMERA);
+            if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)) out.add(android.Manifest.permission.RECORD_AUDIO);
+        }
+        return out.toArray(new String[0]);
+    }
+
+    private boolean hasPerm(String p) {
+        return android.os.Build.VERSION.SDK_INT < 23
+            || checkSelfPermission(p) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void handleWebPermission(PermissionRequest request) {
+        try {
+            String[] need = neededAndroidPerms(request);
+            if (need.length == 0) { request.grant(request.getResources()); return; }
+            boolean all = true;
+            for (String p : need) if (!hasPerm(p)) { all = false; break; }
+            if (all) { request.grant(request.getResources()); return; }
+            if (android.os.Build.VERSION.SDK_INT >= 23) {
+                if (pendingWebPermission != null) { try { pendingWebPermission.deny(); } catch (Throwable ignored) { } }
+                pendingWebPermission = request;
+                requestPermissions(need, PERM_REQ);
+            } else {
+                request.grant(request.getResources());
+            }
+        } catch (Throwable e) {
+            try { request.deny(); } catch (Throwable ignored) { }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        if (code != PERM_REQ) { super.onRequestPermissionsResult(code, perms, results); return; }
+        PermissionRequest req = pendingWebPermission;
+        pendingWebPermission = null;
+        if (req == null) return;
+        boolean any = false;
+        for (int r : results) if (r == android.content.pm.PackageManager.PERMISSION_GRANTED) { any = true; break; }
+        try {
+            if (any) req.grant(req.getResources()); else req.deny();
+        } catch (Throwable ignored) { }
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -64,9 +113,10 @@ public class OmranWebActivity extends Activity {
         web.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
-                // مايك/كاميرا للمحادثة الصوتية وعين عمران — يمنحها النظام
-                // فقط إذا كانت ممنوحة للتطبيق نفسه.
-                runOnUiThread(() -> { try { request.grant(request.getResources()); } catch (Throwable ignored) { } });
+                // v-cam-mic: الويب لا يُمنح كاميرا/مايك إلا إذا كان التطبيق
+                // نفسه حاصلًا على صلاحية أندرويد المقابلة — نطلبها من
+                // المستخدم عند أول حاجة ثم نمنح الصفحة.
+                runOnUiThread(() -> handleWebPermission(request));
             }
 
             @Override

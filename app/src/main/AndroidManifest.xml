@@ -27,6 +27,13 @@
              الداخلي (احتياط الأجهزة بلا كروم) ومراسل الانهيار يحتاجانها. -->
         <uses-permission android:name="android.permission.INTERNET"/>
         <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+        <!-- v-cam-mic: عين عمران والمحادثة الصوتية داخل WebView — بدونها
+             يرفض النظام منح الكاميرا/المايك للصفحة مهما وافق المستخدم -->
+        <uses-permission android:name="android.permission.CAMERA"/>
+        <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+        <uses-feature android:name="android.hardware.camera" android:required="false"/>
+        <uses-feature android:name="android.hardware.camera.any" android:required="false"/>
+        <uses-feature android:name="android.hardware.microphone" android:required="false"/>
     
 
     
