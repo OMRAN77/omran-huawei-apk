@@ -45,12 +45,16 @@ public class OmranWebActivity extends Activity {
     private static final int PERM_REQ = 72;
     // v-attach-camera: إذن الكاميرا قبل فتح منتقي الإرفاق (حتى يظهر خيار الكاميرا)
     private static final int PERM_CAM_PICK = 73;
+    // v-geo: إذن الموقع للويب (مواقيت الصلاة والقبلة)
+    private static final int PERM_GEO = 74;
 
     private WebView web;
     private ValueCallback<Uri[]> pendingFilePick;
     private PermissionRequest pendingWebPermission;
     private WebChromeClient.FileChooserParams pendingChooserParams;
     private Uri cameraOutputUri;
+    private String pendingGeoOrigin;
+    private android.webkit.GeolocationPermissions.Callback pendingGeoCallback;
 
     // v-attach-camera: منتقي createIntent() وحده منتقي مستندات بلا كاميرا —
     // في TWA القديم كان كروم يضيف الكاميرا تلقائيًا، وفي WebView علينا نحن:
@@ -151,6 +155,16 @@ public class OmranWebActivity extends Activity {
             if (p != null && pendingFilePick != null) launchFileChooser(p);
             return;
         }
+        if (code == PERM_GEO) {
+            // v-geo: منح/رفض إذن أندرويد → نمرره لطلب الويب المعلّق
+            boolean granted = false;
+            for (int r : results) if (r == android.content.pm.PackageManager.PERMISSION_GRANTED) { granted = true; break; }
+            if (pendingGeoCallback != null && pendingGeoOrigin != null) {
+                pendingGeoCallback.invoke(pendingGeoOrigin, granted, false);
+            }
+            pendingGeoCallback = null; pendingGeoOrigin = null;
+            return;
+        }
         if (code != PERM_REQ) { super.onRequestPermissionsResult(code, perms, results); return; }
         PermissionRequest req = pendingWebPermission;
         pendingWebPermission = null;
@@ -205,6 +219,7 @@ public class OmranWebActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
+        s.setGeolocationEnabled(true); // v-geo: مواقيت الصلاة والقبلة
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
@@ -250,6 +265,27 @@ public class OmranWebActivity extends Activity {
                 // نفسه حاصلًا على صلاحية أندرويد المقابلة — نطلبها من
                 // المستخدم عند أول حاجة ثم نمنح الصفحة.
                 runOnUiThread(() -> handleWebPermission(request));
+            }
+
+            // v-geo: الموقع يطلب geolocation → نمنحه فقط إذا التطبيق يملك إذن
+            // أندرويد، وإلا نطلبه من المستخدم أول مرة.
+            @Override
+            public void onGeolocationPermissionsShowPrompt(final String origin,
+                    final android.webkit.GeolocationPermissions.Callback callback) {
+                if (hasPerm(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        || hasPerm(android.Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                    callback.invoke(origin, true, false);
+                    return;
+                }
+                if (android.os.Build.VERSION.SDK_INT >= 23) {
+                    pendingGeoOrigin = origin;
+                    pendingGeoCallback = callback;
+                    requestPermissions(new String[] {
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION }, PERM_GEO);
+                } else {
+                    callback.invoke(origin, true, false);
+                }
             }
 
             @Override
