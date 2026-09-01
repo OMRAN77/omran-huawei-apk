@@ -62,6 +62,18 @@ public class OmranWebActivity extends Activity {
                 camera.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, cameraOutputUri);
                 camera.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 camera.setClipData(android.content.ClipData.newRawUri("camera", cameraOutputUri));
+                // v-cam-grant (لقطة «cap_*.jpg | no-decodable»): أعلام المنح على
+                // نية داخل EXTRA_INITIAL_INTENTS لا تصل تطبيق الكاميرا — فيكتب
+                // في الفراغ ويرجع ملفًا صفريًا. نمنح الصلاحية صراحةً لكل
+                // تطبيقات الكاميرا المرشحة.
+                try {
+                    java.util.List<android.content.pm.ResolveInfo> ris = getPackageManager()
+                        .queryIntentActivities(camera, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+                    for (android.content.pm.ResolveInfo ri : ris) {
+                        grantUriPermission(ri.activityInfo.packageName, cameraOutputUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    }
+                } catch (Throwable ignored) { }
             } catch (Throwable e) { camera = null; cameraOutputUri = null; }
         }
         try {
@@ -273,8 +285,16 @@ public class OmranWebActivity extends Activity {
             Uri[] out = WebChromeClient.FileChooserParams.parseResult(result, data);
             // v-attach-camera: الكاميرا ترجع RESULT_OK بلا data — الصورة في
             // الملف المؤقت الذي مررناه في EXTRA_OUTPUT.
+            // v-cam-grant: لا نسلّم ملفًا صفريًا (كتابة الكاميرا فشلت) —
+            // null أفضل من صورة لا تُفك.
             if (out == null && result == Activity.RESULT_OK && cameraOutputUri != null) {
-                out = new Uri[] { cameraOutputUri };
+                boolean hasData = false;
+                try {
+                    android.os.ParcelFileDescriptor pfd =
+                        getContentResolver().openFileDescriptor(cameraOutputUri, "r");
+                    if (pfd != null) { hasData = pfd.getStatSize() > 0; pfd.close(); }
+                } catch (Throwable ignored) { }
+                if (hasData) out = new Uri[] { cameraOutputUri };
             }
             pendingFilePick.onReceiveValue(out);
             pendingFilePick = null;
