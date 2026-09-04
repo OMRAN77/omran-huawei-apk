@@ -44,7 +44,7 @@ public class OmranWelcomeActivity extends Activity {
         scroll.addView(root);
 
         ImageView logo = new ImageView(this);
-        logo.setImageResource(R.mipmap.ic_launcher);
+        logo.setImageResource(com.omran.aibuilder.R.mipmap.ic_launcher);
         LinearLayout.LayoutParams logoLp = new LinearLayout.LayoutParams(dp(84), dp(84));
         logo.setLayoutParams(logoLp);
         root.addView(logo);
