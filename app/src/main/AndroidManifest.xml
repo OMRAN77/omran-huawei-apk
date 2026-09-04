@@ -167,9 +167,9 @@
             
         </activity>
 
-        <!-- v-native-webview: شاشة WebView أصلية — بلا أي منطق TWA عند الإقلاع -->
-        <activity android:name="com.omran.aibuilder.twa.OmranWebActivity"
-            android:alwaysRetainTaskState="true"
+        <!-- v-native-welcome (AppGallery 4.1): شاشة الترحيب الأصلية هي المُشغِّل —
+             تعرض هوية التطبيق ومميزاته بواجهة أندرويد حقيقية قبل فتح المحتوى. -->
+        <activity android:name="com.omran.aibuilder.twa.OmranWelcomeActivity"
             android:label="@string/launcherName"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
             android:theme="@android:style/Theme.Black.NoTitleBar"
@@ -178,6 +178,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <!-- v-native-webview: شاشة WebView أصلية — بلا أي منطق TWA عند الإقلاع -->
+        <activity android:name="com.omran.aibuilder.twa.OmranWebActivity"
+            android:alwaysRetainTaskState="true"
+            android:label="@string/launcherName"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:theme="@android:style/Theme.Black.NoTitleBar"
+            android:exported="true">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT" />
